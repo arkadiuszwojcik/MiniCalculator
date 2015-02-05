@@ -1,0 +1,125 @@
+﻿@inherits System.Web.Mvc.WebViewPage
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Calculator</title>
+    @Styles.Render("~/Content/themes/base/css")
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryui")
+    <script>
+      $(function() {
+        $("#tabs").tabs();
+
+        $( "#combinedButton" )
+          .button()
+          .click(function( event ) {
+              event.preventDefault();
+              Combined();
+          });
+        $("#eitherButton")
+          .button()
+          .click(function (event) {
+              event.preventDefault();
+              Either();
+          });
+        $("#spinnerA, #spinnerB").spinner({
+            spin: function (event, ui) {
+                if (ui.value > 1) {
+                    $(this).spinner("value", 1);
+                    return false;
+                } else if (ui.value < 0) {
+                    $(this).spinner("value", 0);
+                    return false;
+                }
+            },
+            step: .1
+        });
+        $("#errorBox").hide();
+        $("#infoBox").hide();
+      });
+
+      function Combined() {
+          var requestData = { "ProbabilityA": $("#spinnerA").val(), "ProbabilityB": $("#spinnerB").val() };
+          $.getJSON("Calculator/Combined", requestData, JsonResponse);
+      }
+
+      function Either() {
+          var requestData = { "ProbabilityA": $("#spinnerA").val(), "ProbabilityB": $("#spinnerB").val() };
+          $.getJSON("Calculator/Either", requestData, JsonResponse);
+      }
+
+      function JsonResponse(response) {
+          if (response.Successful == true) ShowResult(response.CalculationResult);
+          else ShowError(response.ErrorMessage);
+      }
+
+      function ShowResult(result) {
+          $("#errorBox").hide();
+          $("#infoBox").show();
+          $("#infoBox").html("Calculated result is: ".concat(result.toFixed(4)));
+      }
+
+      function ShowError(error) {
+          $("#infoBox").hide();
+          $("#errorBox").show();
+          $("#errorBox").html("Calculation error: ".concat(error));
+      }
+
+    </script>
+</head>
+<body>
+    <div>
+        <div id="tabs" style="margin: 100px auto; width: 500px;">
+            <ul>
+                <li><a href="#tabs-1">Probability Calculator</a></li>
+                <li><a href="#tabs-2">About</a></li>
+            </ul>
+            <div id="tabs-1">
+                <p>
+                    <label for="spinnerA">A :</label>
+                    <input id="spinnerA" name="spinnerA" value="0">
+                </p>
+
+                <p>
+                    <label for="spinnerB">B :</label>
+                    <input id="spinnerB" name="spinnerB" value="0">
+                </p>
+
+                <button id="combinedButton">Calculate combined</button>
+
+                <button id="eitherButton">Calculate either</button>
+
+                <div id="infoBox" class="ui-state-highlight ui-corner-all" style="margin: 10px 0; padding: 5px 5px;">
+                    Error
+                </div>
+
+                <div id="errorBox" class="ui-state-error ui-corner-all" style="margin: 10px 0; padding: 5px 5px;">
+                    Error
+                </div>
+            </div>
+            <div id="tabs-2" style="font-size: 12px;">
+                <p>Application architecture base on Model-View-Controller (MVC) pattern and follows SOLID principles. It consist of three C# assemblies:</p>
+                <ul>
+                    <li>MiniCalculator.Library - library with utility classes</li>
+                    <li>MiniCalculator.Logic - business logic classes</li>
+                    <li>MiniCalculator.Web - web related classes</li>
+                </ul>
+                <p>In addition each assembly have coresponding test assembly:</p>
+                <ul>
+                    <li>Test.MiniCalculator.Library</li>
+                    <li>Test.MiniCalculator.Logic</li>
+                    <li>Test.MiniCalculator.Web</li>
+                </ul>
+                <p>Tests utilise libraries such: NUnit, Moq and Fluent Assertions</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
